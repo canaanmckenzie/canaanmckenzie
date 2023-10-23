@@ -2,9 +2,8 @@ I make things
 
 ## Likes and Skills
 Physics  
-Mathematics
-Designing
-Semiotics
-Functional programming
+Mathematics  
+Designing  
+Functional programming  
 Cyber Security
 
