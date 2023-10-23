@@ -36,7 +36,7 @@ default_content_action = "append_child"
 
 #set the document type to HTML5, unless the 
 #page already has a doctype declaration
-doctype = <!DOCTYPE html>
+doctype = "<!DOCTYPE html>"
 keep_doctype = true
 
 #indent html tags for readability
