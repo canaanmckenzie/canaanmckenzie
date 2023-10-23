@@ -4,6 +4,6 @@ I make things
 Physics  
 Mathematics  
 Designing   
-Functional programming   
+Functional Programming   
 Cyber Security
 
