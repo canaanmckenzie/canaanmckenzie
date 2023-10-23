@@ -3,7 +3,7 @@ I make things
 ## Likes and Skills
 Physics  
 Mathematics  
-Designing   
+Systems Engineering   
 Functional Programming   
-Cyber Security
+Networks
 
