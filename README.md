@@ -1,1 +1,1 @@
-soupault blog
+My personal blog
