@@ -55,3 +55,7 @@ plugin_dirs = ["plugins"]
 widget = "insert_html"
 selector = "head"
 html = """<link rel="stylesheet" href="/sakura.css" type="text/css">"""
+
+#markdown page preprocessors
+[preprocessors]
+md = 'pandoc -f commonmark+smart -t html'
