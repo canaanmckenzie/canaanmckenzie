@@ -59,3 +59,16 @@ html = """<link rel="stylesheet" href="/sakura.css" type="text/css">"""
 #markdown page preprocessors
 [preprocessors]
 md = 'pandoc -f commonmark+smart -t html'
+
+#defining a content model for posts
+[index.fields.title]
+selector = ["h1"]
+
+[index.fields.data]
+selector = ["time#post-date","time"]
+extract_attribute = "datetime"
+fallback_to_content = true
+
+[index.fields.excerpt]
+selector = ["p#post-excerpt","p"]
+

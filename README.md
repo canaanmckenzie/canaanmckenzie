@@ -1,9 +1,9 @@
-I make things
+Digital Alchemist
 
 ## Likes and Skills
 Physics  
 Mathematics  
 Systems Engineering   
 Functional Programming   
-Networks
+Distributed Networks
 
