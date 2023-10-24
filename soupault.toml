@@ -50,4 +50,8 @@ clean_urls = true
 plugin_discovery = true
 plugin_dirs = ["plugins"]
 
-
+#add insert_html widget for sakura.css
+[widgets.insert-sakura-css]
+widget = "insert_html"
+selector = "head"
+html = """<link rel="stylesheet" href="/sakura.css" type="text/css">"""
