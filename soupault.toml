@@ -72,3 +72,10 @@ fallback_to_content = true
 [index.fields.excerpt]
 selector = ["p#post-excerpt","p"]
 
+#index extraction
+[index]
+index = true
+sort_descending = true
+sort_type = "calendar"
+sort_by = "date"
+date_formats = ["%F"]
