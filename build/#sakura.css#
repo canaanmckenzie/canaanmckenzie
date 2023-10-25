@@ -12,7 +12,7 @@ html {
 body {
   font-size: 1.8rem;
   line-height: 1.618;
-  max-width: 48em;
+  max-width: 38em;
   margin: auto;
   /*color: #4a4a4a;   changed color to dark black*/
   background-color: #f9f9f9;
@@ -39,7 +39,6 @@ h1, h2, h3, h4, h5, h6 {
   word-wrap: break-word;
   -ms-word-break: break-all;
   word-break: break-word;
-  margin: 2em 0em 1em;
 }
 
 h1 {
@@ -80,7 +79,7 @@ hr {
 }
 
 a {
-  /*text-decoration: none;*/
+  text-decoration: none;
   color: #0000ff;
  /* color: #1d7484;*/ 
 }
@@ -89,7 +88,7 @@ a:visited {
 }
 a:hover {
   color: #982c61;
-  border-bottom: 1px solid #0000ff;/*#4a4a4a;*/
+  border-bottom: 2px solid #4a4a4a;
 }
 
 ul {
@@ -97,11 +96,8 @@ ul {
   margin-top: 0px;
   margin-bottom: 2.5rem;
 }
-div#topline {
+#topline{
   border-bottom: 2px solid black;
-}
-div#blog-index{
-  margin-left: 1.4em;
 }
 li {
   margin-bottom: 0.4em;
