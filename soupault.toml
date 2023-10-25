@@ -82,9 +82,9 @@ date_formats = ["%F"]
 
 #add index view to render extracted data
 [index.views.blog]
-index_selector = "#blog-index"
+index_selector = "ul#blog-index"
 index_item_template = """
-                    <h2>{{date}} <a href="{{url}}">{{title}}</a></h2>
+                   <li><h2>{{date}} <a href="{{url}}">{{title}}</a></h2<li>
                     """
 #plugins
 
