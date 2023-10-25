@@ -46,7 +46,7 @@ h1 {
 }
 
 h2 {
-  font-size: 2em;
+  font-size: 1em; /*changed from 2em*/
 }
 
 h3 {

@@ -1,12 +1,11 @@
-# Rebuilding my blog in Soupault : A digital garden
+## Rebuilding my blog in Soupault : A digital garden
 
-<time id = "post-date">2023-10-24</time>
+<time id ="post-date">2023-10-24</time>
 
-<p id="post-excerpt">
-I decided to rebuild my blog site in Soupault, while I've used Eleventy, Pelican, Hakyll, Jekyll, and even built (several) blogs from scratch in the most basic HTML/CSS/JS configurations I could, I stumbled upon Soupault. The clear direction of the project and it's clarity of vision outside of predefined frameworks drew me to it. I realized I missed the a lot of the nascent era of the millenial internet where I first began my denizenship. This blog is going to encompass  whatever catches my interest and I feel is worth writing about. I'm hoping this blog will be as minimal as possible while still serving as an effective canvas and notebook.
-</p>
 
-*Ikagai* (ee-key-guy) is a Japanese concept that combines the terms *iki*, meaning "alive" or "life," and *gai*, meaning "benefit" or "worth." This blog is a collection of *some* of the things where I find worth and wellbeing in commiting myself to in pursuit of happiness and fulfillment. Caveat being that it is also a space to explore new ideas, projects, successes, and failures. As such, it is a living document. A digital garden I tend. Enjoy your stay.
+*Ikigai* (ee-key-guy) is a Japanese concept that combines the terms *iki*, meaning "alive" or "life," and *gai*, meaning "benefit" or "worth." This blog is a collection of *some* of the things wherein I find worth and wellbeing pursuing happiness and fulfillment. Caveat being that it is also a space to explore and present new ideas, projects, successes, and failures. As such, it is a collection of living documents. A digital garden I tend. Enjoy your stay.
+
+The impetus for this post is that I decided to rebuild my blog site in Soupault. While I've used Hugo, Eleventy, Pelican, Hakyll, Jekyll, and even built (several) blogs from scratch over the years, they typically end up listless and I have let them fizzle away unmaintained. Recently however I stumbled upon Soupault. The user freedom in the project's vision drew me to it. I realized I missed that from the nascent era of the millenial internet when I first began my denizenship. This blog is going to encompass whatever catches my interest and I feel is worth writing down. I'm hoping it will be as minimal as possible while still serving as my portfolio, notebook, and canvas.
 
 
 

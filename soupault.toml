@@ -62,9 +62,9 @@ md = 'pandoc -f commonmark+smart -t html'
 
 #defining a content model for posts
 [index.fields.title]
-selector = ["h1"]
+selector = ["h2"]
 
-[index.fields.data]
+[index.fields.date]
 selector = ["time#post-date","time"]
 extract_attribute = "datetime"
 fallback_to_content = true
@@ -79,3 +79,17 @@ sort_descending = true
 sort_type = "calendar"
 sort_by = "date"
 date_formats = ["%F"]
+
+#add index view to render extracted data
+[index.views.blog]
+index_selector = "#blog-index"
+index_item_template = """
+                    <h2>{{date}} <a href="{{url}}">{{title}}</a></h2>
+                    """
+#plugins
+
+#add quicklinks plugin
+[widgets.quick-links]
+widget = "quick-links"
+wikipedia_default_language = "en"
+
