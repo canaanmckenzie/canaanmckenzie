@@ -92,10 +92,12 @@ a {
 a:visited {
   color: #800080;/* #144f5a;*/
 }
+/* removed to remove double hover, can put back for added flair later
 a:hover {
   color: #982c61;
-  border-bottom: 1px solid #0000ff;/*#4a4a4a;*/
+  border-bottom: 1px solid #0000ff;/*#4a4a4a;
 }
+*/
 
 ul#blog-index{
     display:block;
