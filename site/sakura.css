@@ -51,7 +51,8 @@ h1 {
 }
 
 h2 {
-  font-size: 1em; /*changed from 2em*/
+  font-size: 2em; /* changed from 2em*/
+  margin: 2em 0em 1em;
 }
 
 h3 {
@@ -96,6 +97,9 @@ a:hover {
   border-bottom: 1px solid #0000ff;/*#4a4a4a;*/
 }
 
+ul#blog-index{
+    display:block;
+}
 ul {
   padding-left: 1.4em;
   margin-top: 0px;
@@ -109,7 +113,7 @@ div#blog-index{
   margin-left: 1.4em;
 }
 li {
-  margin-bottom: 0.4em;
+  /*margin-bottom: 0.4em;*/
 }
 
 blockquote {

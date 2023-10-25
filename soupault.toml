@@ -84,7 +84,7 @@ date_formats = ["%F"]
 [index.views.blog]
 index_selector = "ul#blog-index"
 index_item_template = """
-                   <li><h2>{{date}} <a href="{{url}}">{{title}}</a></h2<li>
+                    <li>{{date}} <a href="{{url}}">{{title}}</a></li>
                     """
 #plugins
 
