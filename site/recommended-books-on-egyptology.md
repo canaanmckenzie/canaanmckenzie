@@ -9,7 +9,7 @@ why?
 
 good question.
 
-well other than it being something interesting, it also presents a problem in computer vision i've been tackling for a while, which is parsing through images, in this case images of glyphs and feeding them into what i hope will be something of a recognition engine for deciphering hieroglyphs. this extends beyond egyptian, but when i was looking around for a training set, i settled on this and since i have the books and their digital formats i thought i might as well use them. 
+other than being something interesting, it also presents an opportunity for some computer vision research, parsing through images of glyphs and feeding them into what i hope will be something of a recognition engine for deciphering hieroglyphs. this extends beyond egyptian, but when i was looking around for a training set, i settled on this since i have the books and their digital formats readily at hand. 
 
 **middle egyptian**
 
@@ -32,7 +32,7 @@ the next stage is late egyptian, i would recommend beginning or at least having 
 
 Lambdin, T.O., 1983. *Introduction to Sahidic Coptic*. 1st ed. Macon: Mercer University Press.
 
-also pick up a an acient greek dictionary because if a word isn't coptic there is a fair chance that it is greek. i personally use.
+also pick up an ancient greek dictionary because if a word isn't coptic there is a fair chance that it is greek. i personally use.
 
 Woodhouse, S. C., *English-Greek Dictionary : Vocabulary of the Attic Language*. George Routledge & Sons, Limited. 1910.
 
