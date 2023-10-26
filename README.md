@@ -3,7 +3,6 @@
 ## Likes and Skills
 Physics  
 Mathematics  
-Cryptography
 Functional Programming   
-Distributed Networks
-
+Distributed Networks  
+Computational Semiotics
