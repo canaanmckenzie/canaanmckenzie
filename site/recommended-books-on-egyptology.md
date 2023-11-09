@@ -1,19 +1,19 @@
 **[..](/)**
 
-# my recommendations on learning hieroglyphics
+# My Recommendations on Learning Hieroglyphics
 
 <time id ="post-date">2023-10-25</time>
 
 
-why?
+Why?
 
-good question.
+Good question.
 
-other than being something interesting, it also presents an opportunity for some computer vision research, parsing through images of glyphs and feeding them into what i hope will be something of a recognition engine for deciphering hieroglyphs. this extends beyond egyptian, but when i was looking around for a training set, i settled on this since i have the books and their digital formats readily at hand. 
+Other than being something interesting, it also presents an opportunity for some computer vision research, parsing through images of glyphs and feeding them into what I hope will be something of a recognition engine for deciphering hieroglyphs. This extends beyond egyptian, but when I was looking around for a training set, I settled on this since I have the books and their digital formats readily at hand. 
 
-**middle egyptian**
+**Middle Egyptian**
 
-start with middle egyptian, it's the easiest to learn in the beginning and the books are easier to parse.
+Start with middle egyptian, it's the easiest to learn in the beginning and the books are easier to parse.
 
 Allen, J., 2014.*Middle Egyptian: An Introduction To The Language And Culture Of Hieroglyphs*. 3rd ed. Cambridge: CUP.
 
@@ -26,9 +26,9 @@ Gardiner, A., 1957.*Egyptian Grammar: Being an Introduction to the Study of Hier
 Ockinga, B.G., 1998. *A Concise Grammar of Middle Egyptian*. 3rd ed. Mainz: Verlag Philipp von Zabern.  
 
 
-**late egyptian**
+**Late Egyptian**
 
-the next stage is late egyptian, i would recommend beginning or at least having a book on coptic, here is what i use,
+The next stage is late egyptian, I would recommend beginning or at least having a book on coptic, here is what I use,
 
 Lambdin, T.O., 1983. *Introduction to Sahidic Coptic*. 1st ed. Macon: Mercer University Press.
 
@@ -44,9 +44,9 @@ Junge, F., 2005. *Late Egyptian Grammar an Introduction*. Oxford: The Alden Pres
 
 Lesko, L. & Lesko, B. eds., 2002. *A Dictionary of Late Egyptian*. 2nd ed. Providence: B.C. Scribe Publications.
 
-**ancient/classical egyptian**
+**Ancient/Classical Egyptian**
 
-arguably the hardest part of the language, to be honest these can be hard to find/read, so i strongly recommend starting from the top and see how you are doing if you are trying to do this based solely on book learning and don't get about a third of the way through and immediately started building symbolic recognition models to help you do this computationally like I did. 
+Arguably the hardest part of the language, to be honest these can be hard to find/read, so I strongly recommend starting from the top and see how you are doing if you are trying to do this based solely on book learning and don't get about a third of the way through and immediately started building symbolic recognition models to help you do this computationally like I did. 
 
 Edel, E. 1955-64. *Altägyptische Grammatik. Analecta Orientalia* 34-39. Rome: Pontificium Institutum Biblicum.
 
