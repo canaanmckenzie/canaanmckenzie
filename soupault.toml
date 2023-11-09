@@ -62,7 +62,7 @@ md = 'pandoc -f commonmark+smart -t html'
 
 #defining a content model for posts
 [index.fields.title]
-selector = ["h2"]
+selector = ["h1"]
 
 [index.fields.date]
 selector = ["time#post-date","time"]
@@ -82,9 +82,9 @@ date_formats = ["%F"]
 
 #add index view to render extracted data
 [index.views.blog]
-index_selector = "ul#blog-index"
+index_selector = "p#blog-index"
 index_item_template = """
-                    <li>{{date}} <a href="{{url}}">{{title}}</a></li>
+                    <p>{{date}} <a href="{{url}}">{{title}}</a></p>
                     """
 #plugins
 
