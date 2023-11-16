@@ -1,6 +1,4 @@
-**[..](/)**
-
-# My Recommendations on Learning Hieroglyphics
+## My Recommendations on Learning Hieroglyphics
 
 <time id ="post-date">2023-10-25</time>
 

@@ -1,7 +1,4 @@
-
-**[..](/)**
-
-# Rebuilding My Blog in Soupault : A Digital Garden
+## Rebuilding My Blog in Soupault : A Digital Garden
 
 <time id ="post-date">2023-10-24</time>
 

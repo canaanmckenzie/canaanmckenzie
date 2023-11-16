@@ -50,11 +50,11 @@ clean_urls = true
 plugin_discovery = true
 plugin_dirs = ["plugins"]
 
-#add insert_html widget for sakura.css
-[widgets.insert-sakura-css]
+#add insert_html widget for tuft.css
+[widgets.insert-tuft-css]
 widget = "insert_html"
 selector = "head"
-html = """<link rel="stylesheet" href="/sakura.css" type="text/css">"""
+html = """<link rel="stylesheet" href="/tufte.css" type="text/css">"""
 
 #markdown page preprocessors
 [preprocessors]
@@ -62,7 +62,7 @@ md = 'pandoc -f commonmark+smart -t html'
 
 #defining a content model for posts
 [index.fields.title]
-selector = ["h1"]
+selector = ["h2"]
 
 [index.fields.date]
 selector = ["time#post-date","time"]
