@@ -108,19 +108,34 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
             edgeMargin: 15,
             edgeTurnForce: 0.6,
             turbulence: 0.1,
+            maxCohesionNeighbors: 7,
+            centerPull: 0.0002,
           });
           break; // simulate already moved all active boids
         }
       }
     } else if (frame <= flockEnd) {
-      // Free flock — evolving parameters for organic movement
+      // Free flock — murmuration with sub-flock splitting and sweeping waypoints
       const t = (frame - peelEnd) / (flockEnd - peelEnd);
 
-      // Slowly shift flock behavior: tight → loose → tight
+      // Evolving flock parameters: tight → loose → tight
       const breatheCycle = Math.sin(t * Math.PI * 3);
-      const cohesionR = 45 + breatheCycle * 15;
-      const alignmentR = 35 + breatheCycle * 10;
-      const sepR = 10 + Math.abs(breatheCycle) * 5;
+      const cohesionR = 50 + breatheCycle * 15;
+      const alignmentR = 40 + breatheCycle * 10;
+      const sepR = 12 + Math.abs(breatheCycle) * 5;
+
+      // Two waypoints that sweep around the canvas in slow Lissajous patterns
+      // They pull the flock through the whole space instead of letting it glob
+      const wp1 = {
+        x: width * 0.5 + Math.sin(t * Math.PI * 2.3 + 0.5) * width * 0.35,
+        y: height * 0.5 + Math.cos(t * Math.PI * 1.7) * height * 0.3,
+        strength: 0.15 + Math.sin(t * Math.PI * 4) * 0.05,
+      };
+      const wp2 = {
+        x: width * 0.5 + Math.cos(t * Math.PI * 1.9 + 2.0) * width * 0.3,
+        y: height * 0.5 + Math.sin(t * Math.PI * 2.6 + 1.0) * height * 0.25,
+        strength: 0.1 + Math.cos(t * Math.PI * 3) * 0.05,
+      };
 
       simulate(boids, [], width, height, frame, {
         maxSpeed: 3.5 + Math.sin(t * Math.PI * 2) * 1,
@@ -134,6 +149,9 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
         edgeMargin: 25,
         edgeTurnForce: 0.8,
         turbulence: 0.2 + Math.sin(t * Math.PI * 4) * 0.1,
+        maxCohesionNeighbors: 6 + Math.floor(breatheCycle * 2), // 4-8 neighbors — drives splitting
+        centerPull: 0.0003,  // very gentle center bias
+        waypoints: [wp1, wp2],
       });
     } else if (frame <= regroupEnd) {
       // Regroup — gradual pull home, flock behavior fading
@@ -152,6 +170,7 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
         edgeMargin: 15,
         edgeTurnForce: 0.5,
         turbulence: 0.15 * (1 - eased),
+        maxCohesionNeighbors: 7,
       });
 
       // Home pull — gets stronger over time

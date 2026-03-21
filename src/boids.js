@@ -1,8 +1,8 @@
 // =============================================================================
-// Boid simulation — organic 2D flocking for SVG animation
+// Boid simulation — murmuration-style 2D flocking
 // =============================================================================
-// Implements Reynolds' three rules plus turbulence, per-boid personality,
-// and dynamic wind to produce natural, birdlike motion.
+// Reynolds' rules with limited-neighbor cohesion for natural sub-flock
+// splitting, global wind, per-boid personality, and moving waypoints.
 // =============================================================================
 
 class Boid {
@@ -11,10 +11,10 @@ class Boid {
     this.y = y;
     this.vx = vx;
     this.vy = vy;
-    // Per-boid personality — slight parameter variation
-    this.speedScale = 0.85 + Math.random() * 0.3;   // 0.85-1.15x speed
-    this.wanderAngle = Math.random() * Math.PI * 2;  // wander phase offset
-    this.wanderRate = 0.02 + Math.random() * 0.04;   // how fast wander evolves
+    // Per-boid personality
+    this.speedScale = 0.85 + Math.random() * 0.3;
+    this.wanderAngle = Math.random() * Math.PI * 2;
+    this.wanderRate = 0.02 + Math.random() * 0.04;
   }
 }
 
@@ -50,38 +50,51 @@ function simulate(boids, cells, width, height, frame, opts = {}) {
     edgeMargin = 20,
     edgeTurnForce = 0.5,
     turbulence = 0.15,
+    maxCohesionNeighbors = 7,    // only cohere with nearest N — creates sub-flocks
+    centerPull = 0.0,            // gentle pull toward canvas center
+    waypoints = null,            // array of {x,y,strength} moving attractors
   } = opts;
 
-  // Global wind — slow sine-wave drift that shifts the whole flock
-  const windX = Math.sin(frame * 0.008) * 0.3 + Math.sin(frame * 0.023) * 0.15;
-  const windY = Math.cos(frame * 0.011) * 0.2 + Math.cos(frame * 0.019) * 0.1;
+  // Global wind — layered sine waves for organic drift
+  const windX = Math.sin(frame * 0.008) * 0.25
+              + Math.sin(frame * 0.023) * 0.15
+              + Math.sin(frame * 0.0037) * 0.1;
+  const windY = Math.cos(frame * 0.011) * 0.2
+              + Math.cos(frame * 0.019) * 0.1
+              + Math.cos(frame * 0.0043) * 0.08;
+
+  const cx = width / 2;
+  const cy = height / 2;
 
   for (const boid of boids) {
     let sepX = 0, sepY = 0;
     let aliVx = 0, aliVy = 0, aliCount = 0;
-    let cohX = 0, cohY = 0, cohCount = 0;
+
+    // For limited-neighbor cohesion: collect neighbors with distance
+    const cohNeighbors = [];
 
     // Flocking rules
     for (const other of boids) {
       if (other === boid) continue;
       const d = distance(boid, other);
 
+      // Separation
       if (d < separationRadius && d > 0) {
-        const urgency = 1 - d / separationRadius; // stronger when closer
+        const urgency = 1 - d / separationRadius;
         sepX += (boid.x - other.x) / d * urgency;
         sepY += (boid.y - other.y) / d * urgency;
       }
 
+      // Alignment
       if (d < alignmentRadius) {
         aliVx += other.vx;
         aliVy += other.vy;
         aliCount++;
       }
 
+      // Cohesion candidates
       if (d < cohesionRadius) {
-        cohX += other.x;
-        cohY += other.y;
-        cohCount++;
+        cohNeighbors.push({ other, d });
       }
     }
 
@@ -97,10 +110,19 @@ function simulate(boids, cells, width, height, frame, opts = {}) {
       boid.vy += (aliVy - boid.vy) * alignmentWeight * 0.05;
     }
 
-    // Apply cohesion
-    if (cohCount > 0) {
-      cohX /= cohCount;
-      cohY /= cohCount;
+    // Apply cohesion — LIMITED to nearest N neighbors
+    // This is the key to sub-flock splitting: boids only cohere with
+    // their closest few neighbors, not the entire visible group.
+    if (cohNeighbors.length > 0) {
+      cohNeighbors.sort((a, b) => a.d - b.d);
+      const limit = Math.min(maxCohesionNeighbors, cohNeighbors.length);
+      let cohX = 0, cohY = 0;
+      for (let i = 0; i < limit; i++) {
+        cohX += cohNeighbors[i].other.x;
+        cohY += cohNeighbors[i].other.y;
+      }
+      cohX /= limit;
+      cohY /= limit;
       boid.vx += (cohX - boid.x) * cohesionWeight * 0.005;
       boid.vy += (cohY - boid.y) * cohesionWeight * 0.005;
     }
@@ -122,7 +144,24 @@ function simulate(boids, cells, width, height, frame, opts = {}) {
     boid.vx += bestAttrX * attractionWeight;
     boid.vy += bestAttrY * attractionWeight;
 
-    // Per-boid wander — gentle oscillating force perpendicular to heading
+    // Waypoint attraction — moving points that sweep the flock across the canvas
+    if (waypoints) {
+      for (const wp of waypoints) {
+        const d = distance(boid, wp);
+        if (d > 5) {
+          boid.vx += (wp.x - boid.x) / d * wp.strength;
+          boid.vy += (wp.y - boid.y) / d * wp.strength;
+        }
+      }
+    }
+
+    // Gentle center pull — prevents the whole flock drifting into a corner
+    if (centerPull > 0) {
+      boid.vx += (cx - boid.x) * centerPull;
+      boid.vy += (cy - boid.y) * centerPull;
+    }
+
+    // Per-boid wander
     boid.wanderAngle += boid.wanderRate;
     boid.vx += Math.cos(boid.wanderAngle) * turbulence;
     boid.vy += Math.sin(boid.wanderAngle) * turbulence;
@@ -131,7 +170,7 @@ function simulate(boids, cells, width, height, frame, opts = {}) {
     boid.vx += windX;
     boid.vy += windY;
 
-    // Edge avoidance — smooth quadratic force instead of constant
+    // Edge avoidance — smooth quadratic
     if (boid.x < edgeMargin) {
       const t = 1 - boid.x / edgeMargin;
       boid.vx += edgeTurnForce * t * t;
@@ -151,11 +190,10 @@ function simulate(boids, cells, width, height, frame, opts = {}) {
 
     clampSpeed(boid, maxSpeed);
 
-    // Update position
     boid.x += boid.vx;
     boid.y += boid.vy;
 
-    // Wrap around edges (soft)
+    // Soft wrap
     if (boid.x < -10) boid.x = width + 10;
     if (boid.x > width + 10) boid.x = -10;
     if (boid.y < -10) boid.y = height + 10;
