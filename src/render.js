@@ -44,8 +44,8 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
   const flockEnd = Math.floor(frames * 0.70);
   const regroupEnd = Math.floor(frames * 0.88);
 
-  // Each cell is a boid
-  const boids = cells.map(c => ({
+  // Each cell with contributions is a boid — skip level 0 (no commits) for transparent bg
+  const boids = cells.filter(c => c.level > 0).map(c => ({
     homeX: c.x + padding,
     homeY: c.y + padding,
     x: c.x + padding,
@@ -153,7 +153,6 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
   // Build SVG with <animateTransform> instead of CSS
   let svg = '';
   svg += `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">\n`;
-  svg += `<rect width="${width}" height="${height}" fill="${colors.bg}"/>\n`;
 
   // Sample every Nth frame to build the values/keyTimes lists
   const step = 4;
