@@ -34,7 +34,7 @@ async function main() {
   const outDir = argMap.output || process.env.OUTPUT_DIR || 'dist';
   const useFake = argMap.fake !== undefined;
   const boidCount = parseInt(argMap.boids || '32', 10);
-  const frames = parseInt(argMap.frames || '300', 10);
+  const frames = parseInt(argMap.frames || '600', 10);
 
   console.log(`noid-contrib: generating for ${username}`);
   console.log(`  boids: ${boidCount}, frames: ${frames}`);

@@ -1,33 +1,31 @@
 // =============================================================================
 // SVG Renderer — Contribution squares ARE the boids
 // =============================================================================
-// Uses SVG <animateTransform> instead of CSS keyframes so the animation
-// survives GitHub's SVG sanitizer (which strips <style> tags).
+// Uses SVG <animateTransform> for position and <animate> for rotation.
+// Animation is 20s (600 frames @ 30fps) to minimize loop repetition.
 //
-// Animation phases:
-//   1. Hold grid (12%) — contribution graph sits normally
-//   2. Disband (18%) — squares scatter with random kicks
-//   3. Free flock (40%) — pure boid swirling
-//   4. Regroup (18%) — pulled back to grid positions
-//   5. Settle (12%) — snap back into place, loop
+// Phase structure (softer, overlapping transitions):
+//   1. Hold grid (8%)    — contribution graph sits, slight breathing
+//   2. Peel off (15%)    — squares scatter in waves, not all at once
+//   3. Free flock (50%)  — boid swarming with evolving parameters + wind
+//   4. Regroup (20%)     — pulled back gradually, flock thins toward grid
+//   5. Settle (7%)       — snap into place, brief pause before loop
 // =============================================================================
 
 const { simulate } = require('./boids');
 
 const COLORS = {
   light: {
-    bg: '#ffffff',
     levels: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
   },
   dark: {
-    bg: '#0d1117',
     levels: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
   },
 };
 
 function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
   const {
-    frames = 400,
+    frames = 600,
     fps = 30,
     cellSize = 13,
     padding = 30,
@@ -38,13 +36,13 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
   const height = gridHeight + padding * 2;
   const duration = frames / fps;
 
-  // Phase timing
-  const holdEnd = Math.floor(frames * 0.12);
-  const disbandEnd = Math.floor(frames * 0.30);
-  const flockEnd = Math.floor(frames * 0.70);
-  const regroupEnd = Math.floor(frames * 0.88);
+  // Phase boundaries (softer — percentages of total frames)
+  const holdEnd = Math.floor(frames * 0.08);
+  const peelEnd = Math.floor(frames * 0.23);
+  const flockEnd = Math.floor(frames * 0.73);
+  const regroupEnd = Math.floor(frames * 0.93);
 
-  // Each cell with contributions is a boid — skip level 0 (no commits) for transparent bg
+  // Each cell with contributions is a boid
   const boids = cells.filter(c => c.level > 0).map(c => ({
     homeX: c.x + padding,
     homeY: c.y + padding,
@@ -54,6 +52,12 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
     vy: 0,
     level: c.level,
     color: colors.levels[c.level],
+    // Per-boid personality
+    speedScale: 0.85 + Math.random() * 0.3,
+    wanderAngle: Math.random() * Math.PI * 2,
+    wanderRate: 0.02 + Math.random() * 0.04,
+    // Staggered peel-off: each boid has a random delay before it leaves the grid
+    peelDelay: Math.random(),
   }));
 
   // Record positions for every frame
@@ -61,62 +65,84 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
 
   for (let frame = 0; frame < frames; frame++) {
     if (frame <= holdEnd) {
+      // Hold — grid with subtle breathing (tiny oscillation)
+      const breathe = Math.sin(frame * 0.15) * 0.3;
       for (const b of boids) {
-        b.x = b.homeX;
-        b.y = b.homeY;
+        b.x = b.homeX + breathe;
+        b.y = b.homeY + breathe * 0.5;
         b.vx = 0;
         b.vy = 0;
       }
-    } else if (frame <= disbandEnd) {
-      const progress = (frame - holdEnd) / (disbandEnd - holdEnd);
+    } else if (frame <= peelEnd) {
+      // Peel off — staggered departure, not all at once
+      const progress = (frame - holdEnd) / (peelEnd - holdEnd);
 
-      if (frame === holdEnd + 1) {
-        for (const b of boids) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = 2 + Math.random() * 3;
-          b.vx = Math.cos(angle) * speed;
-          b.vy = Math.sin(angle) * speed;
+      for (const b of boids) {
+        if (progress < b.peelDelay * 0.7) {
+          // This boid hasn't peeled off yet — stay at home with breathing
+          const breathe = Math.sin(frame * 0.15) * 0.3;
+          b.x = b.homeX + breathe;
+          b.y = b.homeY + breathe * 0.5;
+          b.vx = 0;
+          b.vy = 0;
+        } else {
+          // This boid is peeling off
+          const boidProgress = (progress - b.peelDelay * 0.7) / (1 - b.peelDelay * 0.7);
+          if (b.vx === 0 && b.vy === 0) {
+            // Initial kick — randomized direction
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 1.5 + Math.random() * 2.5;
+            b.vx = Math.cos(angle) * speed;
+            b.vy = Math.sin(angle) * speed;
+          }
+
+          simulate(boids.filter(ob => ob.vx !== 0 || ob.vy !== 0), [], width, height, frame, {
+            maxSpeed: 2 + boidProgress * 3,
+            separationRadius: 12,
+            alignmentRadius: 35,
+            cohesionRadius: 35,
+            separationWeight: 1.0,
+            alignmentWeight: 0.6,
+            cohesionWeight: 0.4,
+            attractionWeight: 0,
+            edgeMargin: 15,
+            edgeTurnForce: 0.6,
+            turbulence: 0.1,
+          });
+          break; // simulate already moved all active boids
         }
       }
-
-      simulate(boids, [], width, height, {
-        maxSpeed: 3 + progress * 2,
-        separationRadius: 10,
-        alignmentRadius: 30,
-        cohesionRadius: 30,
-        separationWeight: 1.2,
-        alignmentWeight: 0.8,
-        cohesionWeight: 0.5,
-        attractionWeight: 0,
-        edgeMargin: 15,
-        edgeTurnForce: 0.8,
-      });
-
-      const homePull = 0.05 * (1 - progress);
-      for (const b of boids) {
-        b.vx += (b.homeX - b.x) * homePull;
-        b.vy += (b.homeY - b.y) * homePull;
-      }
     } else if (frame <= flockEnd) {
-      simulate(boids, [], width, height, {
-        maxSpeed: 4,
-        separationRadius: 12,
-        alignmentRadius: 40,
-        cohesionRadius: 50,
-        separationWeight: 1.5,
-        alignmentWeight: 1.0,
-        cohesionWeight: 0.8,
+      // Free flock — evolving parameters for organic movement
+      const t = (frame - peelEnd) / (flockEnd - peelEnd);
+
+      // Slowly shift flock behavior: tight → loose → tight
+      const breatheCycle = Math.sin(t * Math.PI * 3);
+      const cohesionR = 45 + breatheCycle * 15;
+      const alignmentR = 35 + breatheCycle * 10;
+      const sepR = 10 + Math.abs(breatheCycle) * 5;
+
+      simulate(boids, [], width, height, frame, {
+        maxSpeed: 3.5 + Math.sin(t * Math.PI * 2) * 1,
+        separationRadius: sepR,
+        alignmentRadius: alignmentR,
+        cohesionRadius: cohesionR,
+        separationWeight: 1.3 + breatheCycle * 0.3,
+        alignmentWeight: 0.8 + Math.sin(t * Math.PI * 5) * 0.3,
+        cohesionWeight: 0.6 + breatheCycle * 0.2,
         attractionWeight: 0,
-        edgeMargin: 20,
-        edgeTurnForce: 1.0,
+        edgeMargin: 25,
+        edgeTurnForce: 0.8,
+        turbulence: 0.2 + Math.sin(t * Math.PI * 4) * 0.1,
       });
     } else if (frame <= regroupEnd) {
+      // Regroup — gradual pull home, flock behavior fading
       const progress = (frame - flockEnd) / (regroupEnd - flockEnd);
       const eased = progress * progress;
 
-      simulate(boids, [], width, height, {
+      simulate(boids, [], width, height, frame, {
         maxSpeed: 4 * (1 - eased * 0.7),
-        separationRadius: 8 * (1 - eased),
+        separationRadius: 10 * (1 - eased),
         alignmentRadius: 30 * (1 - eased),
         cohesionRadius: 30 * (1 - eased),
         separationWeight: 1.0 * (1 - eased),
@@ -125,18 +151,22 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
         attractionWeight: 0,
         edgeMargin: 15,
         edgeTurnForce: 0.5,
+        turbulence: 0.15 * (1 - eased),
       });
 
-      const homePull = 0.02 + eased * 0.12;
+      // Home pull — gets stronger over time
+      const homePull = 0.015 + eased * 0.1;
+      const damping = 1 - eased * 0.03;
       for (const b of boids) {
         b.vx += (b.homeX - b.x) * homePull;
         b.vy += (b.homeY - b.y) * homePull;
-        b.vx *= (1 - eased * 0.03);
-        b.vy *= (1 - eased * 0.03);
+        b.vx *= damping;
+        b.vy *= damping;
       }
     } else {
+      // Settle — smooth snap back to grid
       const progress = (frame - regroupEnd) / (frames - regroupEnd);
-      const snap = 0.15 + progress * 0.2;
+      const snap = 0.12 + progress * 0.25;
       for (const b of boids) {
         b.vx = (b.homeX - b.x) * snap;
         b.vy = (b.homeY - b.y) * snap;
@@ -150,11 +180,11 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
     }
   }
 
-  // Build SVG with <animateTransform> instead of CSS
+  // Build SVG — transparent background, no bg rect
   let svg = '';
   svg += `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">\n`;
 
-  // Sample every Nth frame to build the values/keyTimes lists
+  // Sample every Nth frame for keyframes
   const step = 4;
   const half = cellSize / 2;
 
@@ -162,7 +192,6 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
     const b = boids[i];
     const path = paths[i];
 
-    // Build semicolon-separated values for animateTransform
     const values = [];
     const keyTimes = [];
 
@@ -171,7 +200,7 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
       values.push(`${(p.x - half).toFixed(1)} ${(p.y - half).toFixed(1)}`);
       keyTimes.push((f / frames).toFixed(4));
     }
-    // Ensure clean loop — last keyframe = first keyframe position
+    // Clean loop
     const first = path[0];
     values.push(`${(first.x - half).toFixed(1)} ${(first.y - half).toFixed(1)}`);
     keyTimes.push('1');

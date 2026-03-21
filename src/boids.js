@@ -1,14 +1,8 @@
 // =============================================================================
-// Boid simulation — simplified 2D flocking for SVG animation
+// Boid simulation — organic 2D flocking for SVG animation
 // =============================================================================
-// Implements Reynolds' three rules:
-//   1. Separation — avoid crowding nearby boids
-//   2. Alignment  — steer toward average heading of neighbors
-//   3. Cohesion   — steer toward average position of neighbors
-//
-// Plus an extra rule: attraction to contribution cells (the green squares).
-// Boids are drawn toward cells with more contributions, creating a visual
-// effect of the flock feeding on the contribution graph.
+// Implements Reynolds' three rules plus turbulence, per-boid personality,
+// and dynamic wind to produce natural, birdlike motion.
 // =============================================================================
 
 class Boid {
@@ -17,6 +11,10 @@ class Boid {
     this.y = y;
     this.vx = vx;
     this.vy = vy;
+    // Per-boid personality — slight parameter variation
+    this.speedScale = 0.85 + Math.random() * 0.3;   // 0.85-1.15x speed
+    this.wanderAngle = Math.random() * Math.PI * 2;  // wander phase offset
+    this.wanderRate = 0.02 + Math.random() * 0.04;   // how fast wander evolves
   }
 }
 
@@ -25,18 +23,20 @@ function distance(a, b) {
 }
 
 function clampSpeed(boid, maxSpeed) {
+  const personalMax = maxSpeed * boid.speedScale;
+  const personalMin = personalMax * 0.2;
   const speed = Math.sqrt(boid.vx ** 2 + boid.vy ** 2);
-  if (speed > maxSpeed) {
-    boid.vx = (boid.vx / speed) * maxSpeed;
-    boid.vy = (boid.vy / speed) * maxSpeed;
+  if (speed > personalMax) {
+    boid.vx = (boid.vx / speed) * personalMax;
+    boid.vy = (boid.vy / speed) * personalMax;
   }
-  if (speed < maxSpeed * 0.3) {
-    boid.vx = (boid.vx / (speed || 1)) * maxSpeed * 0.3;
-    boid.vy = (boid.vy / (speed || 1)) * maxSpeed * 0.3;
+  if (speed < personalMin && speed > 0) {
+    boid.vx = (boid.vx / speed) * personalMin;
+    boid.vy = (boid.vy / speed) * personalMin;
   }
 }
 
-function simulate(boids, cells, width, height, opts = {}) {
+function simulate(boids, cells, width, height, frame, opts = {}) {
   const {
     separationRadius = 15,
     alignmentRadius = 40,
@@ -49,32 +49,35 @@ function simulate(boids, cells, width, height, opts = {}) {
     maxSpeed = 3,
     edgeMargin = 20,
     edgeTurnForce = 0.5,
+    turbulence = 0.15,
   } = opts;
+
+  // Global wind — slow sine-wave drift that shifts the whole flock
+  const windX = Math.sin(frame * 0.008) * 0.3 + Math.sin(frame * 0.023) * 0.15;
+  const windY = Math.cos(frame * 0.011) * 0.2 + Math.cos(frame * 0.019) * 0.1;
 
   for (const boid of boids) {
     let sepX = 0, sepY = 0;
     let aliVx = 0, aliVy = 0, aliCount = 0;
     let cohX = 0, cohY = 0, cohCount = 0;
 
-    // Flocking rules — interact with other boids
+    // Flocking rules
     for (const other of boids) {
       if (other === boid) continue;
       const d = distance(boid, other);
 
-      // Separation: push away from nearby boids
       if (d < separationRadius && d > 0) {
-        sepX += (boid.x - other.x) / d;
-        sepY += (boid.y - other.y) / d;
+        const urgency = 1 - d / separationRadius; // stronger when closer
+        sepX += (boid.x - other.x) / d * urgency;
+        sepY += (boid.y - other.y) / d * urgency;
       }
 
-      // Alignment: match velocity of neighbors
       if (d < alignmentRadius) {
         aliVx += other.vx;
         aliVy += other.vy;
         aliCount++;
       }
 
-      // Cohesion: steer toward center of nearby flock
       if (d < cohesionRadius) {
         cohX += other.x;
         cohY += other.y;
@@ -102,10 +105,10 @@ function simulate(boids, cells, width, height, opts = {}) {
       boid.vy += (cohY - boid.y) * cohesionWeight * 0.005;
     }
 
-    // Attraction to contribution cells — boids are drawn to green squares
+    // Attraction to contribution cells
     let bestAttrX = 0, bestAttrY = 0, bestWeight = 0;
     for (const cell of cells) {
-      if (cell.level === 0) continue; // skip empty cells
+      if (cell.level === 0) continue;
       const d = distance(boid, cell);
       if (d < attractionRadius && d > 5) {
         const weight = cell.level / d;
@@ -119,11 +122,32 @@ function simulate(boids, cells, width, height, opts = {}) {
     boid.vx += bestAttrX * attractionWeight;
     boid.vy += bestAttrY * attractionWeight;
 
-    // Edge avoidance — steer away from boundaries
-    if (boid.x < edgeMargin) boid.vx += edgeTurnForce;
-    if (boid.x > width - edgeMargin) boid.vx -= edgeTurnForce;
-    if (boid.y < edgeMargin) boid.vy += edgeTurnForce;
-    if (boid.y > height - edgeMargin) boid.vy -= edgeTurnForce;
+    // Per-boid wander — gentle oscillating force perpendicular to heading
+    boid.wanderAngle += boid.wanderRate;
+    boid.vx += Math.cos(boid.wanderAngle) * turbulence;
+    boid.vy += Math.sin(boid.wanderAngle) * turbulence;
+
+    // Global wind
+    boid.vx += windX;
+    boid.vy += windY;
+
+    // Edge avoidance — smooth quadratic force instead of constant
+    if (boid.x < edgeMargin) {
+      const t = 1 - boid.x / edgeMargin;
+      boid.vx += edgeTurnForce * t * t;
+    }
+    if (boid.x > width - edgeMargin) {
+      const t = 1 - (width - boid.x) / edgeMargin;
+      boid.vx -= edgeTurnForce * t * t;
+    }
+    if (boid.y < edgeMargin) {
+      const t = 1 - boid.y / edgeMargin;
+      boid.vy += edgeTurnForce * t * t;
+    }
+    if (boid.y > height - edgeMargin) {
+      const t = 1 - (height - boid.y) / edgeMargin;
+      boid.vy -= edgeTurnForce * t * t;
+    }
 
     clampSpeed(boid, maxSpeed);
 
