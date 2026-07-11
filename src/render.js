@@ -112,7 +112,7 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
       level: c.level,
       color: colors.levels[c.level],
       depart, dur,
-      state: 'home',
+      state: 'home', homing: false,
       landP0: null, landV0: null, landFrame: 0, landDur: LAND_MAX,
       // Per-boid personality
       speedScale: 0.85 + Math.random() * 0.3,
@@ -187,16 +187,20 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
       }
 
       if (b.state === 'fly') {
-        if (!airborne || w >= b.dur - landPhase) {
-          // Flight window closing — capture state and ride the rail home.
-          // Rail duration scales with distance so a tile dropped off far
-          // from home glides back at flock speed instead of darting.
+        // The return phase only OPENS the landing window — a tile never
+        // abandons the swarm to travel home alone. It keeps flocking with
+        // a gentle homeward drift, and detaches only when the flock
+        // actually carries it over its own slot.
+        b.homing = !airborne || w >= b.dur - landPhase;
+        if (b.homing) {
           const dist = Math.hypot(b.x - b.homeX, b.y - b.homeY);
-          b.landDur = Math.max(fps, Math.min(LAND_MAX, Math.round(dist / 4.5)));
-          b.state = 'land';
-          b.landP0 = { x: b.x, y: b.y };
-          b.landV0 = { x: b.vx * b.landDur, y: b.vy * b.landDur };
-          b.landFrame = 0;
+          if (dist < 60) {
+            b.landDur = Math.max(Math.round(fps * 0.7), Math.min(LAND_MAX, Math.round(dist / 4.5)));
+            b.state = 'land';
+            b.landP0 = { x: b.x, y: b.y };
+            b.landV0 = { x: b.vx * b.landDur, y: b.vy * b.landDur };
+            b.landFrame = 0;
+          }
         }
       }
 
@@ -221,6 +225,17 @@ function renderSVG(cells, gridWidth, gridHeight, palette = 'light', opts = {}) {
     }
     if (flying.length > 0) {
       simulate(flying, [], width, height, frame, opsForFrame);
+      // Homeward drift for tiles whose landing window is open — a steer on
+      // the order of the waypoint pull, so they lean toward home while
+      // staying inside the flock rather than being yanked out of it.
+      for (const b of flying) {
+        if (b.homing) {
+          const dx = b.homeX - b.x, dy = b.homeY - b.y;
+          const d = Math.hypot(dx, dy) || 1;
+          b.vx += (dx / d) * 0.25;
+          b.vy += (dy / d) * 0.25;
+        }
+      }
     }
   }
 
