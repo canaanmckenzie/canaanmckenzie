@@ -12,6 +12,7 @@ on:
         type: choice
         options:
           - noid
+          - origami
           - snake
 
 permissions:
@@ -23,12 +24,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # --- Noid boids ---
+      # --- Node setup (shared by noid + origami) ---
       - uses: actions/setup-node@v4
-        if: ${{ github.event.inputs.style == 'noid' || github.event_name == 'schedule' }}
+        if: ${{ github.event.inputs.style != 'snake' }}
         with:
           node-version: '20'
 
+      # --- Noid boids (flat squares) ---
       - name: Generate noid SVGs
         if: ${{ github.event.inputs.style == 'noid' || github.event_name == 'schedule' }}
         run: |
@@ -39,6 +41,19 @@ jobs:
           GITHUB_USER: canaanmckenzie
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OUTPUT_DIR: dist
+
+      # --- Origami (wing-beating squares) ---
+      - name: Generate origami SVGs
+        if: ${{ github.event.inputs.style == 'origami' }}
+        run: |
+          node src/main.js
+          cp dist/noid-contrib.svg dist/profile-animation.svg
+          cp dist/noid-contrib-dark.svg dist/profile-animation-dark.svg
+        env:
+          GITHUB_USER: canaanmckenzie
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OUTPUT_DIR: dist
+          STYLE: origami
 
       # --- Snake ---
       - name: Generate snake SVGs

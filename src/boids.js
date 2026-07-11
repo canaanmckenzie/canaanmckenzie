@@ -53,15 +53,29 @@ function simulate(boids, cells, width, height, frame, opts = {}) {
     maxCohesionNeighbors = 7,    // only cohere with nearest N — creates sub-flocks
     centerPull = 0.0,            // gentle pull toward canvas center
     waypoints = null,            // array of {x,y,strength} moving attractors
+    loopT = null,                // 0..1 phase within a seamless loop — when set,
+                                 // wind uses integer harmonics of the loop so the
+                                 // force field at t=1 exactly matches t=0
+    wrap = true,                 // teleport across edges when far out of bounds
   } = opts;
 
-  // Global wind — layered sine waves for organic drift
-  const windX = Math.sin(frame * 0.008) * 0.25
-              + Math.sin(frame * 0.023) * 0.15
-              + Math.sin(frame * 0.0037) * 0.1;
-  const windY = Math.cos(frame * 0.011) * 0.2
-              + Math.cos(frame * 0.019) * 0.1
-              + Math.cos(frame * 0.0043) * 0.08;
+  // Global wind — layered sine waves for organic drift.
+  // In loop mode the frequencies are integer multiples of one full cycle,
+  // which makes the wind periodic over the loop: no force discontinuity at
+  // the seam, one ingredient of an invisible loop boundary.
+  let windX, windY;
+  if (loopT !== null) {
+    const p = loopT * Math.PI * 2;
+    windX = Math.sin(p * 3) * 0.25 + Math.sin(p * 7 + 1.3) * 0.15 + Math.sin(p * 2 + 4.1) * 0.1;
+    windY = Math.cos(p * 4) * 0.2 + Math.cos(p * 9 + 2.6) * 0.1 + Math.cos(p * 2 + 0.7) * 0.08;
+  } else {
+    windX = Math.sin(frame * 0.008) * 0.25
+          + Math.sin(frame * 0.023) * 0.15
+          + Math.sin(frame * 0.0037) * 0.1;
+    windY = Math.cos(frame * 0.011) * 0.2
+          + Math.cos(frame * 0.019) * 0.1
+          + Math.cos(frame * 0.0043) * 0.08;
+  }
 
   const cx = width / 2;
   const cy = height / 2;
@@ -144,13 +158,22 @@ function simulate(boids, cells, width, height, frame, opts = {}) {
     boid.vx += bestAttrX * attractionWeight;
     boid.vy += bestAttrY * attractionWeight;
 
-    // Waypoint attraction — moving points that sweep the flock across the canvas
+    // Waypoint attraction — moving points that sweep the flock across the
+    // canvas. When a waypoint declares a channel and the boid has a wpBias,
+    // the pull is weighted per boid: boids near bias 1 chase channel 0,
+    // boids near bias 0 chase channel 1, and everyone in between stretches
+    // out along the line between them. This is what tears the flock into
+    // sub-flocks that cross and merge instead of globbing into one ball.
     if (waypoints) {
       for (const wp of waypoints) {
         const d = distance(boid, wp);
         if (d > 5) {
-          boid.vx += (wp.x - boid.x) / d * wp.strength;
-          boid.vy += (wp.y - boid.y) / d * wp.strength;
+          let f = 1;
+          if (wp.channel !== undefined && boid.wpBias !== undefined) {
+            f = wp.channel === 0 ? boid.wpBias : 1 - boid.wpBias;
+          }
+          boid.vx += (wp.x - boid.x) / d * wp.strength * f;
+          boid.vy += (wp.y - boid.y) / d * wp.strength * f;
         }
       }
     }
@@ -193,11 +216,15 @@ function simulate(boids, cells, width, height, frame, opts = {}) {
     boid.x += boid.vx;
     boid.y += boid.vy;
 
-    // Soft wrap
-    if (boid.x < -10) boid.x = width + 10;
-    if (boid.x > width + 10) boid.x = -10;
-    if (boid.y < -10) boid.y = height + 10;
-    if (boid.y > height + 10) boid.y = -10;
+    // Soft wrap — disabled in loop mode, where a position teleport would
+    // streak across the canvas when the seam crossfade interpolates over it.
+    // Edge avoidance above is what actually keeps boids in frame.
+    if (wrap) {
+      if (boid.x < -10) boid.x = width + 10;
+      if (boid.x > width + 10) boid.x = -10;
+      if (boid.y < -10) boid.y = height + 10;
+      if (boid.y > height + 10) boid.y = -10;
+    }
   }
 }
 
