@@ -3,6 +3,9 @@ name: Generate Profile Animation
 on:
   schedule:
     - cron: "0 0 * * *"
+  push:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       style:
@@ -30,9 +33,9 @@ jobs:
         with:
           node-version: '20'
 
-      # --- Noid boids (flat squares) ---
+      # --- Noid boids (flat squares) — the default for scheduled and push runs ---
       - name: Generate noid SVGs
-        if: ${{ github.event.inputs.style == 'noid' || github.event_name == 'schedule' }}
+        if: ${{ github.event.inputs.style == 'noid' || github.event_name == 'schedule' || github.event_name == 'push' }}
         run: |
           node src/main.js
           cp dist/noid-contrib.svg dist/profile-animation.svg
