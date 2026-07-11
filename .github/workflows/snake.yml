@@ -22,10 +22,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # --- Node setup (shared by noid + origami) ---
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         if: ${{ github.event.inputs.style != 'snake' }}
         with:
           node-version: '20'
@@ -66,7 +66,7 @@ jobs:
             dist/profile-animation-dark.svg?palette=github-dark
 
       # --- Deploy ---
-      - uses: crazy-max/ghaction-github-pages@v3.1.0
+      - uses: crazy-max/ghaction-github-pages@v5
         with:
           target_branch: output
           build_dir: dist
